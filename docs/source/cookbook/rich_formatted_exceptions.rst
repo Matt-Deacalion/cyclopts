@@ -50,7 +50,7 @@ To create a more visually appealing and informative traceback, you can use the `
     from rich.traceback import install as install_rich_traceback
 
     error_console = Console(stderr=True)
-    app = App(console=console, error_console=error_console)
+    app = App(console=error_console, error_console=error_console)
 
     # Install rich traceback handler using the error console
     install_rich_traceback(console=error_console)
@@ -67,37 +67,46 @@ Now, running the updated script will display a rich-formatted traceback:
 .. code-block:: console
 
    $ python my-script.py foo
-   ╭──────────────── Traceback (most recent call last) ─────────────────╮
-   │ /cyclopts/my-script.py:16 in <module>                              │
-   │                                                                    │
-   │   13                                                               │
-   │   14 if __name__ == "__main__":                                    │
-   │   15 │   try:                                                      │
-   │ ❱ 16 │   │   app()                                                 │
-   │   17 │   except Exception:                                         │
-   │   18 │   │   console.print_exception(width=70)                     │
-   │   19                                                               │
-   │                                                                    │
-   │ /cyclopts/cyclopts/core.py:903 in __call__                         │
-   │                                                                    │
-   │    900 │   │   │   │                                               │
-   │    901 │   │   │   │   return asyncio.run(command(*bound.args, **b │
-   │    902 │   │   │   else:                                           │
-   │ ❱  903 │   │   │   │   return command(*bound.args, **bound.kwargs) │
-   │    904 │   │   except Exception as e:                              │
-   │    905 │   │   │   try:                                            │
-   │    906 │   │   │   │   from pydantic import ValidationError as Pyd │
-   │                                                                    │
-   │ /cyclopts/my-script.py:11 in main                                  │
-   │                                                                    │
-   │    8                                                               │
-   │    9 @app.default                                                  │
-   │   10 def main(name: str):                                          │
-   │ ❱ 11 │   print(name + 3)                                           │
-   │   12                                                               │
-   │   13                                                               │
-   │   14 if __name__ == "__main__":                                    │
-   ╰────────────────────────────────────────────────────────────────────╯
+    ╭─────────────────────────────── Traceback (most recent call last) ────────────────────────────────╮
+    │ /cyclopts/my-script.py:17 in <module>                                                            │
+    │                                                                                                  │
+    │   14 │   print(name + 3)                                                                         │
+    │   15                                                                                             │
+    │   16 if __name__ == "__main__":                                                                  │
+    │ ❱ 17 │   app()                                                                                   │
+    │   18                                                                                             │
+    │                                                                                                  │
+    │ /cyclopts/cyclopts/core.py:1860 in __call__                                                      │
+    │                                                                                                  │
+    │   1857 │   │   │                                                                                 │
+    │   1858 │   │   │   resolved_backend = cast(Literal["asyncio", "trio"], self.app_stack.resolve("  │
+    │   1859 │   │   │   try:                                                                          │
+    │ ❱ 1860 │   │   │   │   result = _run_maybe_async_command(command, bound, resolved_backend)       │
+    │   1861 │   │   │   │   return self._handle_result_action(result)                                 │
+    │   1862 │   │   │   except KeyboardInterrupt:                                                     │
+    │   1863 │   │   │   │   if self.suppress_keyboard_interrupt:                                      │
+    │                                                                                                  │
+    │ /cyclopts/cyclopts/_run.py:50 in _run_maybe_async_command                                        │
+    │                                                                                                  │
+    │    47 │   │   if bound is None:                                                                  │
+    │    48 │   │   │   return command()                                                               │
+    │    49 │   │   else:                                                                              │
+    │ ❱  50 │   │   │   return command(*bound.args, **bound.kwargs)                                    │
+    │    51 │                                                                                          │
+    │    52 │   if backend == "asyncio":                                                               │
+    │    53 │   │   import asyncio                                                                     │
+    │                                                                                                  │
+    │ /cyclopts/my-script:14 in main                                                                   │
+    │                                                                                                  │
+    │   11                                                                                             │
+    │   12 @app.default                                                                                │
+    │   13 def main(name: str):                                                                        │
+    │ ❱ 14 │   print(name + 3)                                                                         │
+    │   15                                                                                             │
+    │   16 if __name__ == "__main__":                                                                  │
+    │   17 │   app()                                                                                   │
+    ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+    TypeError: can only concatenate str (not "int") to str
 
 This rich-formatted traceback provides a more readable and visually appealing representation of the error, but may make copy/pasting for sharing a bit more cumbersome.
 
